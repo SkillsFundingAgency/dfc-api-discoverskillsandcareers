@@ -1,6 +1,6 @@
-﻿using Dfc.Session.Models;
-using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
+﻿using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
 using DFC.Api.DiscoverSkillsAndCareers.Extensions;
+using Dfc.Session.Models;
 using DFC.Swagger.Standard.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
