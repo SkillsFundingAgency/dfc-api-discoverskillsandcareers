@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 using System.Net;
 
 namespace DFC.Api.DiscoverSkillsAndCareers.Common.Services
@@ -18,25 +19,26 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Common.Services
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        public IActionResult ResponseWithCorrelationId(HttpStatusCode statusCode)
+        public IActionResult ResponseWithCorrelationId(HttpStatusCode statusCode, Guid? correlationId = null)
         {
-            AddCorrelationId();
+            AddCorrelationId(correlationId);
             return new StatusCodeResult((int)statusCode);
         }
 
-        public IActionResult ResponseObjectWithCorrelationId(object value)
+        public IActionResult ResponseObjectWithCorrelationId(object value, Guid? correlationId = null)
         {
             var settings = new JsonSerializerSettings { ContractResolver = new DefaultContractResolver() };
             var orderedModel = JsonConvert.SerializeObject(value, Formatting.Indented, settings);
 
-            AddCorrelationId();
+            AddCorrelationId(correlationId);
 
             return new OkObjectResult(JsonConvert.DeserializeObject(orderedModel));
         }
 
-        private void AddCorrelationId()
+        private void AddCorrelationId(Guid? correlationId = null)
         {
-            httpContextAccessor.HttpContext.Response.Headers.Add(HeaderName.CorrelationId, correlationIdProvider.CorrelationId);
+            var correlationIdHeader = correlationId.HasValue ? correlationId.ToString() : correlationIdProvider.CorrelationId;
+            httpContextAccessor.HttpContext.Response.Headers.Add(HeaderName.CorrelationId, correlationIdHeader);
         }
     }
 }

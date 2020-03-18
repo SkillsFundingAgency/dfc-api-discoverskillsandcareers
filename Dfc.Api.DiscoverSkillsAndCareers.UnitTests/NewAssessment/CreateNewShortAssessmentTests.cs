@@ -25,13 +25,12 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
         private readonly ISessionClient sessionClient;
         private readonly IQuestionSetRepository questionSetRepository;
         private readonly IUserSessionRepository userSessionRepository;
-        private readonly IHttpContextAccessor httpContextAccessor;
         private readonly NewAssessmentFunctions functionApp;
 
         public CreateNewShortAssessmentTests()
         {
             httpRequest = A.Fake<HttpRequest>();
-            httpContextAccessor = A.Fake<IHttpContextAccessor>();
+            var httpContextAccessor = A.Fake<IHttpContextAccessor>();
             questionSetRepository = A.Fake<IQuestionSetRepository>();
             userSessionRepository = A.Fake<IUserSessionRepository>();
             sessionClient = A.Fake<ISessionClient>();
@@ -42,7 +41,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             var logger = new LogService(correlationProvider, telemetryClient);
             var correlationResponse = new ResponseWithCorrelation(correlationProvider, httpContextAccessor);
 
-            functionApp = new NewAssessmentFunctions(logger, correlationResponse, questionSetRepository, userSessionRepository, sessionClient);
+            functionApp = new NewAssessmentFunctions(logger, correlationResponse, questionSetRepository, userSessionRepository, sessionClient, correlationProvider);
         }
 
         [Fact]

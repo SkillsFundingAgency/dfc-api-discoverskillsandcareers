@@ -1,13 +1,13 @@
 ﻿using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
 using DFC.Api.DiscoverSkillsAndCareers.Functions;
+using DFC.Api.DiscoverSkillsAndCareers.Repositories;
+using Dfc.Session;
 using FakeItEasy;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using DFC.Api.DiscoverSkillsAndCareers.Repositories;
-using Dfc.Session;
 using Xunit;
 
 namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
@@ -30,7 +30,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             var logger = new LogService(correlationProvider, telemetryClient);
             var correlationResponse = new ResponseWithCorrelation(correlationProvider, httpContextAccessor);
 
-            functionApp = new NewAssessmentFunctions(logger, correlationResponse, questionSetRepository, userSessionRepository, sessionClient);
+            functionApp = new NewAssessmentFunctions(logger, correlationResponse, questionSetRepository, userSessionRepository, sessionClient, correlationProvider);
         }
 
         [Fact]

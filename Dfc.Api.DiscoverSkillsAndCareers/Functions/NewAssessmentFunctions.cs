@@ -1,15 +1,16 @@
-﻿using Dfc.Session;
-using Dfc.Session.Models;
-using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
+﻿using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
 using DFC.Api.DiscoverSkillsAndCareers.Extensions;
 using DFC.Api.DiscoverSkillsAndCareers.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Repositories;
+using Dfc.Session;
+using Dfc.Session.Models;
 using DFC.Swagger.Standard.Annotations;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
@@ -24,13 +25,15 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
         private readonly IQuestionSetRepository questionSetRepository;
         private readonly IUserSessionRepository userSessionRepository;
         private readonly ISessionClient sessionClient;
+        private readonly ICorrelationIdProvider correlationIdProvider;
 
-        public NewAssessmentFunctions(ILogService logService, IResponseWithCorrelation responseWithCorrelation, IQuestionSetRepository questionSetRepository, IUserSessionRepository userSessionRepository, ISessionClient sessionClient)
+        public NewAssessmentFunctions(ILogService logService, IResponseWithCorrelation responseWithCorrelation, IQuestionSetRepository questionSetRepository, IUserSessionRepository userSessionRepository, ISessionClient sessionClient, ICorrelationIdProvider correlationIdProvider)
         {
             this.logService = logService;
             this.responseWithCorrelation = responseWithCorrelation;
             this.questionSetRepository = questionSetRepository;
             this.sessionClient = sessionClient;
+            this.correlationIdProvider = correlationIdProvider;
             this.userSessionRepository = userSessionRepository;
         }
 
@@ -64,11 +67,14 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
         {
             request.LogRequestHeaders(logService);
 
+            var correlationId = Guid.Parse(correlationIdProvider.CorrelationId);
+            logService.LogMessage($"CorrelationId: {correlationId} - Creating a new assessment", SeverityLevel.Information);
+
             var currentQuestionSetInfo = await questionSetRepository.GetCurrentQuestionSet(ShortAssessmentType).ConfigureAwait(false);
             if (currentQuestionSetInfo == null)
             {
-                logService.LogMessage($"Unable to load latest question set {ShortAssessmentType}", SeverityLevel.Information);
-                return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.NoContent);
+                logService.LogMessage($"CorrelationId: {correlationId} - Unable to load latest question set {ShortAssessmentType}", SeverityLevel.Information);
+                return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.NoContent, correlationId);
             }
 
             var dfcUserSession = sessionClient.NewSession();
@@ -86,7 +92,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
 
             await userSessionRepository.CreateUserSession(userSession).ConfigureAwait(false);
 
-            return responseWithCorrelation.ResponseObjectWithCorrelationId(dfcUserSession);
+            return responseWithCorrelation.ResponseObjectWithCorrelationId(dfcUserSession, correlationId);
         }
 
         [Display(Name = "Post New Skills Assessment", Description = "Post New Skills Assessment. Creates a new user session")]

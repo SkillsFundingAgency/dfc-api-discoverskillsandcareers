@@ -30,7 +30,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             var logger = new LogService(correlationProvider, telemetryClient);
             var correlationResponse = new ResponseWithCorrelation(correlationProvider, httpContextAccessor);
 
-            functionApp = new NewAssessmentFunctions(logger, correlationResponse, questionSetRepository, userSessionRepository, sessionClient);
+            functionApp = new NewAssessmentFunctions(logger, correlationResponse, questionSetRepository, userSessionRepository, sessionClient, correlationProvider);
         }
 
         [Fact]
