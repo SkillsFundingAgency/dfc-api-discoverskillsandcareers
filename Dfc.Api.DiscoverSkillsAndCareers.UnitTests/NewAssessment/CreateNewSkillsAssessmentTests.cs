@@ -6,6 +6,8 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using DFC.Api.DiscoverSkillsAndCareers.Repositories;
+using Dfc.Session;
 using Xunit;
 
 namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
@@ -19,13 +21,16 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
         {
             httpRequest = A.Fake<HttpRequest>();
             var httpContextAccessor = A.Fake<IHttpContextAccessor>();
+            var questionSetRepository = A.Fake<IQuestionSetRepository>();
+            var userSessionRepository = A.Fake<IUserSessionRepository>();
+            var sessionClient = A.Fake<ISessionClient>();
             var correlationProvider = new RequestHeaderCorrelationIdProvider(httpContextAccessor);
             using var telemetryConfig = new TelemetryConfiguration();
             var telemetryClient = new TelemetryClient(telemetryConfig);
             var logger = new LogService(correlationProvider, telemetryClient);
             var correlationResponse = new ResponseWithCorrelation(correlationProvider, httpContextAccessor);
 
-            functionApp = new NewAssessmentFunctions(logger, correlationResponse);
+            functionApp = new NewAssessmentFunctions(logger, correlationResponse, questionSetRepository, userSessionRepository, sessionClient);
         }
 
         [Fact]

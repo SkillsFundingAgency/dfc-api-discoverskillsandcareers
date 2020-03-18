@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>DFC.Api.DiscoverSkillsAndCareers.UnitTests</RootNamespace>
+    <RootNamespace>DFC.Api.DiscoverSkillsAndCareers.Integrationtests</RootNamespace>
     <IsPackable>false</IsPackable>
-    <ProjectGuid>{3AF6E9E1-DC3C-4DFF-A1A3-35D447E62E0E}</ProjectGuid>
+    <ProjectGuid>{}</ProjectGuid>
     <CodeAnalysisRuleSet>../UnitTests.CodeAnalysis.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -11,7 +12,6 @@
   <ItemGroup>
     <AdditionalFiles Include="..\stylecop.json" Link="../stylecop.json" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="FakeItEasy" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -29,7 +29,5 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Dfc.Api.DiscoverSkillsAndCareers\Dfc.Api.DiscoverSkillsAndCareers.csproj" />
-  </ItemGroup>
+
 </Project>
