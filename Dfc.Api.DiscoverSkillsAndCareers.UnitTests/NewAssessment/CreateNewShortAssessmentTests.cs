@@ -76,6 +76,13 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
                 QuestionSetVersion = "qsVersion",
                 AssessmentType = "short",
                 MaxQuestions = 5,
+                PartitionKey = "partitionKey",
+                Description = "short description",
+                IsCurrent = true,
+                LastUpdated = DateTimeOffset.UtcNow,
+                QuestionSetKey = "qsKey",
+                Title = "qstitle",
+                Version = 1,
             };
 
             A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns(questionSet);

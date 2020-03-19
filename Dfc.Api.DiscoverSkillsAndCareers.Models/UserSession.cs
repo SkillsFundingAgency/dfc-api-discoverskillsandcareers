@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace DFC.Api.DiscoverSkillsAndCareers.Models
 {
-    [ExcludeFromCodeCoverage]
     public class UserSession
     {
         [JsonIgnore]
@@ -26,10 +24,10 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Models
         public AssessmentState AssessmentState { get; set; }
 
         [JsonProperty("filteredAssessmentState")]
-        public FilteredAssessmentState FilteredAssessmentState { get; set; }
+        public object FilteredAssessmentState { get; set; }
 
         [JsonProperty("resultData")]
-        public ResultData ResultData { get; set; }
+        public object ResultData { get; set; }
 
         [JsonProperty("startedDt")]
         public DateTime StartedDt { get; set; }
@@ -41,27 +39,6 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Models
         public DateTime LastUpdatedDt { get; set; }
 
         [JsonProperty("completeDt")]
-        public DateTime? CompleteDt => CurrentState.CompleteDt;
-
-        [JsonIgnore]
-        public bool IsComplete => CurrentState.IsComplete;
-
-        [JsonIgnore]
-        public int MaxQuestions => CurrentState.MaxQuestions;
-
-        [JsonIgnore]
-        public AssessmentStateBase CurrentState =>
-            (FilteredAssessmentState == null
-             || string.IsNullOrWhiteSpace(FilteredAssessmentState.CurrentFilterAssessmentCode))
-             || !AssessmentState.IsComplete ? (AssessmentStateBase)AssessmentState : (AssessmentStateBase)FilteredAssessmentState;
-
-        [JsonIgnore]
-        public int CurrentQuestion => CurrentState.CurrentQuestion;
-
-        [JsonIgnore]
-        public string CurrentQuestionSetVersion => CurrentState.QuestionSetVersion;
-
-        [JsonIgnore]
-        public bool IsFilterAssessment => CurrentState is FilteredAssessmentState;
+        public DateTime? CompleteDt { get; set; }
     }
 }

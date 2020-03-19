@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Dfc.Api.DiscoverSkillsAndCareers.Models
 {
-    [ExcludeFromCodeCoverage]
     public class QuestionSet
     {
         [JsonProperty("partitionKey")]
