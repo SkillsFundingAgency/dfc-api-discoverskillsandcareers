@@ -72,7 +72,7 @@
         "resourcePrefix": "[tolower(concat('dfc-', parameters('Environment'), '-api-jobprofiles'))]",
         "functionAppInsightsName": "[tolower(concat('dfc-', parameters('Environment'), '-api-dysac-ai'))]",
         "VersionSetName": "[concat(toLower(parameters('ApiName')), '-versionset')]",
-        "ActionGroupName": "[concat('dfc-', replace(tolower(parameters('Environment')), '-draft', ''), '-app-sharedresources-actgrp')]"
+        "ActionGroupName": "[concat('dfc-', tolower(parameters('Environment')), '-app-sharedresources-actgrp')]"
     },
     "resources": [
         {
