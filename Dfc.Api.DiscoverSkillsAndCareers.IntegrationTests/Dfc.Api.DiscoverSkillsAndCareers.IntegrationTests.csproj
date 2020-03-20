@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>DFC.Api.DiscoverSkillsAndCareers.UnitTests</RootNamespace>
+    <RootNamespace>DFC.Api.DiscoverSkillsAndCareers.IntegrationTests</RootNamespace>
     <IsPackable>false</IsPackable>
-    <ProjectGuid>{3AF6E9E1-DC3C-4DFF-A1A3-35D447E62E0E}</ProjectGuid>
+    <ProjectGuid>{A70D2605-5633-4643-8043-3D07CF2082D1}</ProjectGuid>
     <CodeAnalysisRuleSet>../UnitTests.CodeAnalysis.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -11,15 +12,17 @@
   <ItemGroup>
     <AdditionalFiles Include="..\stylecop.json" Link="../stylecop.json" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="FakeItEasy" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.2" />
+    <PackageReference Include="RestSharp" Version="106.10.1" />
+    <PackageReference Include="coverlet.collector" Version="1.0.1" />
+    <PackageReference Include="FluentAssertions" Version="5.10.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
-    <PackageReference Include="coverlet.collector" Version="1.0.1" />
-    <PackageReference Include="FluentAssertions" Version="5.10.2" />
+
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -32,4 +35,13 @@
   <ItemGroup>
     <ProjectReference Include="..\Dfc.Api.DiscoverSkillsAndCareers\Dfc.Api.DiscoverSkillsAndCareers.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings-template.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
