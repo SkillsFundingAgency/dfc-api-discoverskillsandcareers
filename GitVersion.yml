@@ -1,5 +1,0 @@
-branches:
-  master:
-    regex: v*-master
-  develop:
-    regex: v*-dev
