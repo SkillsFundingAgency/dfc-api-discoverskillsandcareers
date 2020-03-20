@@ -12,13 +12,13 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Extensions
         {
             var message = new StringBuilder();
 
-            request.Headers.TryGetValue(HeaderName.ApimUrl, out var apimUrl);
+            request?.Headers.TryGetValue(HeaderName.ApimUrl, out var apimUrl);
             message.AppendLine($"Request Header Key: '{HeaderName.ApimUrl}', Value: '{apimUrl}'");
 
-            request.Headers.TryGetValue(HeaderName.RequestId, out var requestId);
+            request?.Headers.TryGetValue(HeaderName.RequestId, out var requestId);
             message.AppendLine($"Request Header Key: '{HeaderName.RequestId}', Value: '{requestId}'");
 
-            request.Headers.TryGetValue(HeaderName.Version, out var version);
+            request?.Headers.TryGetValue(HeaderName.Version, out var version);
             message.AppendLine($"Request Header Key: '{HeaderName.Version}', Value: '{version}'");
 
             logger?.LogMessage(message.ToString(), SeverityLevel.Information);
