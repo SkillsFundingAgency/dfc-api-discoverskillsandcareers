@@ -51,6 +51,9 @@
         "ApiName": {
             "type": "string"
         },
+        "CosmosDbName": {
+            "type": "string"
+        },
         "enableAlerts": {
             "type": "bool",
             "metadata": {
@@ -72,6 +75,7 @@
         "resourcePrefix": "[tolower(concat('dfc-', parameters('Environment'), '-api-jobprofiles'))]",
         "functionAppInsightsName": "[tolower(concat('dfc-', parameters('Environment'), '-api-dysac-ai'))]",
         "VersionSetName": "[concat(toLower(parameters('ApiName')), '-versionset')]",
+        "AppSettings__SessionSalt": "ncs",
         "ActionGroupName": "[concat('dfc-', tolower(parameters('Environment')), '-app-sharedresources-actgrp')]"
     },
     "resources": [
@@ -206,6 +210,34 @@
                             {
                                 "name": "AzureWebJobsStorage",
                                 "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('appSharedStorageAccountName'),';AccountKey=',listKeys(resourceId(parameters('appSharedResourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('appSharedStorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
+                            },
+                            {
+                                "name": "CosmosDbConnection__Key",
+                                "value": ""
+                            },
+                            {
+                                "name": "CosmosDbConnection__Endpoint",
+                                "value": "[concat('https://', parameters('CosmosDbName'), '.documents.azure.com:443/')]"
+                            },
+                            {
+                                "name": "CosmosDbConnection__DatabaseId",
+                                "value": "DiscoverMySkillsAndCareers"
+                            },
+                            {
+                                "name": "CosmosDbConnection__QuestionSetsCollectionId",
+                                "value": "QuestionSets"
+                            },
+                            {
+                                "name": "CosmosDbConnection__UserSessionCollectionId",
+                                "value": "UserSessions"
+                            },
+                            {
+                                "name": "SessionConfig__ApplicationName",
+                                "value": "session"
+                            },
+                            {
+                                "name": "SessionConfig__Salt",
+                                "value": "[variables('AppSettings__SessionSalt')]"
                             }
                         ]
                     }

@@ -29,6 +29,9 @@
         "ApiName": {
             "value": "api-name"
         },
+        "CosmosDbName": {
+            "value": "dfc-foo-shared-cdb"
+        },
         "enableAlerts": {
             "value": false
         }
