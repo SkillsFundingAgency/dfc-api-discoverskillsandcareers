@@ -1,10 +1,10 @@
-﻿using Dfc.Api.DiscoverSkillsAndCareers.Models;
-using Dfc.Session;
-using Dfc.Session.Models;
-using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
+﻿using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
 using DFC.Api.DiscoverSkillsAndCareers.Extensions;
+using Dfc.Api.DiscoverSkillsAndCareers.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Repositories;
+using Dfc.Session;
+using Dfc.Session.Models;
 using DFC.Swagger.Standard.Annotations;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
