@@ -41,6 +41,12 @@
         "ApiName": {
             "value": "__ApiName__"
         },
+        "CosmosDbName": {
+            "value": "__CosmosDbName__"
+        },
+        "CosmosDbResourceGroup": {
+            "value": "__CosmosDbResourceGroup__"
+        },
         "enableAlerts": {
             "value": __EnableAzureMonitorAlerting__
         },
