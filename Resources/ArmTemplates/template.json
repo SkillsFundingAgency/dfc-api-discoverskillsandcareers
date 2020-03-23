@@ -219,7 +219,7 @@
                                 "value": "[listKeys(resourceId(parameters('CosmosDbResourceGroup'), 'Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbName')), '2015-04-08').primaryMasterKey]"
                             },
                             {
-                                "name": "CosmosDbConnection__Endpoint",
+                                "name": "CosmosDbConnection__EndpointUrl",
                                 "value": "[concat('https://', parameters('CosmosDbName'), '.documents.azure.com:443/')]"
                             },
                             {
