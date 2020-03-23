@@ -1,13 +1,21 @@
-﻿using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
-using DFC.Api.DiscoverSkillsAndCareers.Functions;
-using DFC.Api.DiscoverSkillsAndCareers.Repositories;
+﻿using Dfc.Api.DiscoverSkillsAndCareers.Models;
 using Dfc.Session;
+using Dfc.Session.Models;
+using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
+using DFC.Api.DiscoverSkillsAndCareers.Functions;
+using DFC.Api.DiscoverSkillsAndCareers.Models;
+using DFC.Api.DiscoverSkillsAndCareers.Repositories;
 using FakeItEasy;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Linq.Expressions;
 using System.Net;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
@@ -16,13 +24,15 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
     {
         private readonly HttpRequest httpRequest;
         private readonly NewAssessmentFunctions functionApp;
+        private readonly IQuestionSetRepository questionSetRepository;
+        private readonly IUserSessionRepository userSessionRepository;
 
         public CreateNewSkillsAssessmentTests()
         {
             httpRequest = A.Fake<HttpRequest>();
             var httpContextAccessor = A.Fake<IHttpContextAccessor>();
-            var questionSetRepository = A.Fake<IQuestionSetRepository>();
-            var userSessionRepository = A.Fake<IUserSessionRepository>();
+            questionSetRepository = A.Fake<IQuestionSetRepository>();
+            userSessionRepository = A.Fake<IUserSessionRepository>();
             var sessionClient = A.Fake<ISessionClient>();
             var correlationProvider = new RequestHeaderCorrelationIdProvider(httpContextAccessor);
             using var telemetryConfig = new TelemetryConfiguration();
@@ -34,14 +44,137 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
         }
 
         [Fact]
-        public void DummyTest()
+        public async Task ReturnsBadRequestWhenEmptyRequestBodySent()
         {
+            // Arrange
+            var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            streamWriter.Write(string.Empty);
+            streamWriter.Flush();
+            memoryStream.Position = 0;
+
+            A.CallTo(() => httpRequest.Body).Returns(memoryStream);
+
             // Act
-            var result = functionApp.CreateNewSkillsAssessment(httpRequest);
+            var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
             var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
 
             // Assert
+            Assert.Equal((int)HttpStatusCode.BadRequest, statusCodeResult.StatusCode);
+        }
+
+        // TODO: Test for invalid session here
+
+        [Fact]
+        public async Task ReturnsNoContentResultWhenQuestionSetInfoDoesNotExist()
+        {
+            // Arrange
+            var dfcUserSession = CreateDfcUserSession();
+            var ms = new MemoryStream();
+            using var sw = new StreamWriter(ms);
+
+            sw.Write(JsonConvert.SerializeObject(dfcUserSession));
+            sw.Flush();
+            ms.Position = 0;
+
+            A.CallTo(() => httpRequest.Body).Returns(ms);
+            A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns((QuestionSet)null);
+
+            // Act
+            var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal((int)HttpStatusCode.NoContent, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task ReturnsAlreadyReportedResultWhenUserSessionAlreadyExists()
+        {
+            // Arrange
+            var dfcUserSession = CreateDfcUserSession();
+            var questionSet = CreateQuestionSet();
+            var userSession = CreateUserSession();
+            var ms = new MemoryStream();
+            using var sw = new StreamWriter(ms);
+
+            sw.Write(JsonConvert.SerializeObject(dfcUserSession));
+            sw.Flush();
+            ms.Position = 0;
+
+            A.CallTo(() => httpRequest.Body).Returns(ms);
+            A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns(questionSet);
+            A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns(userSession);
+
+            // Act
+            var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal((int)HttpStatusCode.AlreadyReported, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreatesUserSessionInDbSuccessfully()
+        {
+            // Arrange
+            var dfcUserSession = CreateDfcUserSession();
+            var questionSet = CreateQuestionSet();
+            var ms = new MemoryStream();
+            using var sw = new StreamWriter(ms);
+
+            sw.Write(JsonConvert.SerializeObject(dfcUserSession));
+            sw.Flush();
+            ms.Position = 0;
+
+            A.CallTo(() => httpRequest.Body).Returns(ms);
+            A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns(questionSet);
+            A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns((UserSession)null);
+
+            // Act
+            var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
             Assert.Equal((int)HttpStatusCode.Created, statusCodeResult.StatusCode);
+            A.CallTo(() => userSessionRepository.CreateUserSession(A<UserSession>.Ignored)).MustHaveHappenedOnceExactly();
+        }
+
+        private static QuestionSet CreateQuestionSet()
+        {
+            return new QuestionSet
+            {
+                QuestionSetVersion = "qsVersion",
+                AssessmentType = "short",
+                MaxQuestions = 5,
+                PartitionKey = "partitionKey",
+                Description = "short description",
+                IsCurrent = true,
+                LastUpdated = DateTimeOffset.UtcNow,
+                QuestionSetKey = "qsKey",
+                Title = "qstitle",
+                Version = 1,
+            };
+        }
+
+        private static UserSession CreateUserSession()
+        {
+            return new UserSession
+            {
+                UserSessionId = "sessionId",
+            };
+        }
+
+        private static DfcUserSession CreateDfcUserSession()
+        {
+            return new DfcUserSession
+            {
+                SessionId = "sessionId",
+                Salt = "salt",
+                CreatedDate = DateTime.UtcNow,
+                PartitionKey = "partitionkey",
+            };
         }
     }
 }
