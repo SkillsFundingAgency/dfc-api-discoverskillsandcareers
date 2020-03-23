@@ -16,7 +16,7 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
     <PackageReference Include="AzureFunctions.Extensions.Swashbuckle" Version="1.4.5-preview5" />
-    <PackageReference Include="Dfc.Session" Version="0.3.2" />
+    <PackageReference Include="Dfc.Session" Version="0.3.4" />
     <PackageReference Include="DFC.Swagger.Standard" Version="0.1.17" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>

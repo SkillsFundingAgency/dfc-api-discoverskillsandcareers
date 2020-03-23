@@ -1,9 +1,11 @@
-﻿using Dfc.Session.Models;
+﻿using Dfc.Session;
+using Dfc.Session.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Repositories;
 using FluentAssertions;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using RestSharp;
 using System;
@@ -18,6 +20,7 @@ namespace Dfc.Api.DiscoverSkillsAndCareers.IntegrationTests
     {
         private readonly string apiBaseUrl;
         private readonly IUserSessionRepository userSessionRepository;
+        private readonly ISessionClient sessionClient;
 
         public CreateNewAssessmentIntegrationTests()
         {
@@ -26,8 +29,17 @@ namespace Dfc.Api.DiscoverSkillsAndCareers.IntegrationTests
                 .Build();
 
             var cosmosDbConnection = configuration.GetSection("CosmosDbConnection").Get<CosmosDbConnection>();
+            var sessionConfig = configuration.GetSection("SessionConfig").Get<SessionConfig>();
             var documentClient = new DocumentClient(new Uri(cosmosDbConnection.EndpointUrl), cosmosDbConnection.AccessKey);
             this.userSessionRepository = new UserSessionRepository(documentClient, cosmosDbConnection);
+
+            var serviceProvider = new ServiceCollection().AddSessionServices(sessionConfig);
+            serviceProvider.AddLogging();
+            serviceProvider.AddHttpContextAccessor();
+
+            var services = serviceProvider.BuildServiceProvider();
+
+            sessionClient = services.GetService<ISessionClient>();
 
             apiBaseUrl = configuration.GetConnectionString("ApiBaseUrl");
         }
@@ -56,7 +68,7 @@ namespace Dfc.Api.DiscoverSkillsAndCareers.IntegrationTests
         public async Task CreateNewSkillsAssessmentCreatedSuccessfully()
         {
             // Arrange
-            var dfcSession = CreateDfcUserSession();
+            var dfcSession = sessionClient.NewSession();
             var client = new RestClient(apiBaseUrl);
             var req = new RestRequest("assessment/skills", Method.POST)
             {
@@ -100,13 +112,13 @@ namespace Dfc.Api.DiscoverSkillsAndCareers.IntegrationTests
             deserialisedResult.Should().BeEquivalentTo(expectedDfcUserSession);
         }
 
-        private static DfcUserSession CreateDfcUserSession(string sessionId = null, DateTime? startedDateTime = null)
+        private static DfcUserSession CreateDfcUserSession(string sessionId, DateTime startedDateTime)
         {
             return new DfcUserSession
             {
-                SessionId = sessionId ?? $"sessionId{Guid.NewGuid()}",
+                SessionId = sessionId,
                 Salt = "salt",
-                CreatedDate = startedDateTime ?? DateTime.UtcNow,
+                CreatedDate = startedDateTime,
                 PartitionKey = "integrationTest",
             };
         }

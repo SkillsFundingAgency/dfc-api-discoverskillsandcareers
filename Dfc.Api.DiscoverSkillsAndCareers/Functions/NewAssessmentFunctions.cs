@@ -130,13 +130,12 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
                 return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.BadRequest, correlationId);
             }
 
-            // Need to expose this method in the session package
-            //var isValid = await sessionClient.ValidateSession();
-            //if (!isValid)
-            //{
-            //  logService.LogMessage($"CorrelationId: {correlationId} - Session with Id {dfcUserSession.UserSessionId} is not valid", SeverityLevel.Warning);
-            //    return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.BadRequest, correlationId);
-            //}
+            var isValid = sessionClient.ValidateUserSession(dfcUserSession);
+            if (!isValid)
+            {
+                logService.LogMessage($"CorrelationId: {correlationId} - Session with Id {dfcUserSession.SessionId} is not valid", SeverityLevel.Warning);
+                return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.BadRequest, correlationId);
+            }
 
             var currentQuestionSetInfo = await questionSetRepository.GetCurrentQuestionSet(SkillsAssessmentType).ConfigureAwait(false);
             if (currentQuestionSetInfo == null)

@@ -26,6 +26,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
         private readonly NewAssessmentFunctions functionApp;
         private readonly IQuestionSetRepository questionSetRepository;
         private readonly IUserSessionRepository userSessionRepository;
+        private readonly ISessionClient sessionClient;
 
         public CreateNewSkillsAssessmentTests()
         {
@@ -33,7 +34,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             var httpContextAccessor = A.Fake<IHttpContextAccessor>();
             questionSetRepository = A.Fake<IQuestionSetRepository>();
             userSessionRepository = A.Fake<IUserSessionRepository>();
-            var sessionClient = A.Fake<ISessionClient>();
+            sessionClient = A.Fake<ISessionClient>();
             var correlationProvider = new RequestHeaderCorrelationIdProvider(httpContextAccessor);
             using var telemetryConfig = new TelemetryConfiguration();
             var telemetryClient = new TelemetryClient(telemetryConfig);
@@ -64,7 +65,28 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             Assert.Equal((int)HttpStatusCode.BadRequest, statusCodeResult.StatusCode);
         }
 
-        // TODO: Test for invalid session here
+        [Fact]
+        public async Task ReturnsBadRequestWhenSessionIsNotValid()
+        {
+            // Arrange
+            var dfcUserSession = CreateDfcUserSession();
+            var ms = new MemoryStream();
+            using var sw = new StreamWriter(ms);
+
+            sw.Write(JsonConvert.SerializeObject(dfcUserSession));
+            sw.Flush();
+            ms.Position = 0;
+
+            A.CallTo(() => httpRequest.Body).Returns(ms);
+            A.CallTo(() => sessionClient.ValidateUserSession(A<DfcUserSession>.Ignored)).Returns(false);
+
+            // Act
+            var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+
+            // Assert
+            Assert.Equal((int)HttpStatusCode.BadRequest, statusCodeResult.StatusCode);
+        }
 
         [Fact]
         public async Task ReturnsNoContentResultWhenQuestionSetInfoDoesNotExist()
@@ -80,6 +102,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
 
             A.CallTo(() => httpRequest.Body).Returns(ms);
             A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns((QuestionSet)null);
+            A.CallTo(() => sessionClient.ValidateUserSession(A<DfcUserSession>.Ignored)).Returns(true);
 
             // Act
             var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
@@ -106,6 +129,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             A.CallTo(() => httpRequest.Body).Returns(ms);
             A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns(questionSet);
             A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns(userSession);
+            A.CallTo(() => sessionClient.ValidateUserSession(A<DfcUserSession>.Ignored)).Returns(true);
 
             // Act
             var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
@@ -131,6 +155,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             A.CallTo(() => httpRequest.Body).Returns(ms);
             A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns(questionSet);
             A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns((UserSession)null);
+            A.CallTo(() => sessionClient.ValidateUserSession(A<DfcUserSession>.Ignored)).Returns(true);
 
             // Act
             var result = await functionApp.CreateNewSkillsAssessment(httpRequest).ConfigureAwait(false);
