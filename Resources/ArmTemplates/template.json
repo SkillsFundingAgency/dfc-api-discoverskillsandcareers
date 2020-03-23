@@ -54,6 +54,9 @@
         "CosmosDbName": {
             "type": "string"
         },
+        "CosmosDbResourceGroup": {
+            "type": "string"
+        },
         "enableAlerts": {
             "type": "bool",
             "metadata": {
@@ -213,7 +216,7 @@
                             },
                             {
                                 "name": "CosmosDbConnection__Key",
-                                "value": ""
+                                "value": "[listKeys(resourceId(parameters('CosmosDbResourceGroup'), 'Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbName')), '2015-04-08').primaryMasterKey]"
                             },
                             {
                                 "name": "CosmosDbConnection__Endpoint",

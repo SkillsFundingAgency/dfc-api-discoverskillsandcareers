@@ -30,7 +30,10 @@
             "value": "api-name"
         },
         "CosmosDbName": {
-            "value": "dfc-foo-shared-cdb"
+            "value": "dfc-dev-shared-cdb"
+        },
+        "CosmosDbResourceGroup": {
+            "value": "dfc-dev-shared-rg"
         },
         "enableAlerts": {
             "value": false
