@@ -21,6 +21,9 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Extensions
             request?.Headers.TryGetValue(HeaderName.Version, out var version);
             message.AppendLine($"Request Header Key: '{HeaderName.Version}', Value: '{version}'");
 
+            request?.Headers.TryGetValue(HeaderName.CorrelationId, out var correlationId);
+            message.AppendLine($"Request Header Key: '{HeaderName.CorrelationId}', Value: '{correlationId}'");
+
             logger?.LogMessage(message.ToString(), SeverityLevel.Information);
         }
     }

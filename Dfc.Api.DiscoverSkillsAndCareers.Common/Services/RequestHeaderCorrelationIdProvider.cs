@@ -13,8 +13,8 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Common.Services
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        public string CorrelationId => !string.IsNullOrWhiteSpace(httpContextAccessor.HttpContext.Request.Headers[HeaderName.RequestId].ToString())
-            ? httpContextAccessor.HttpContext.Request.Headers[HeaderName.RequestId].ToString()
+        public string CorrelationId => !string.IsNullOrWhiteSpace(httpContextAccessor.HttpContext.Request.Headers[HeaderName.CorrelationId].ToString())
+            ? httpContextAccessor.HttpContext.Request.Headers[HeaderName.CorrelationId].ToString()
             : Guid.NewGuid().ToString();
     }
 }
