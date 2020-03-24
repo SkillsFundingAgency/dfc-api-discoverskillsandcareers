@@ -1,10 +1,10 @@
-﻿using Dfc.Api.DiscoverSkillsAndCareers.Models;
-using Dfc.Session;
-using Dfc.Session.Models;
-using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
+﻿using DFC.Api.DiscoverSkillsAndCareers.Common.Services;
 using DFC.Api.DiscoverSkillsAndCareers.Functions;
+using Dfc.Api.DiscoverSkillsAndCareers.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Repositories;
+using Dfc.Session;
+using Dfc.Session.Models;
 using FakeItEasy;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.IO;
-using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
@@ -128,7 +127,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
 
             A.CallTo(() => httpRequest.Body).Returns(ms);
             A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns(questionSet);
-            A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns(userSession);
+            A.CallTo(() => userSessionRepository.GetByIdAsync(A<string>.Ignored, A<string>.Ignored)).Returns(userSession);
             A.CallTo(() => sessionClient.ValidateUserSession(A<DfcUserSession>.Ignored)).Returns(true);
 
             // Act
@@ -154,7 +153,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
 
             A.CallTo(() => httpRequest.Body).Returns(ms);
             A.CallTo(() => questionSetRepository.GetCurrentQuestionSet(A<string>.Ignored)).Returns(questionSet);
-            A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns((UserSession)null);
+            A.CallTo(() => userSessionRepository.GetByIdAsync(A<string>.Ignored, A<string>.Ignored)).Returns((UserSession)null);
             A.CallTo(() => sessionClient.ValidateUserSession(A<DfcUserSession>.Ignored)).Returns(true);
 
             // Act

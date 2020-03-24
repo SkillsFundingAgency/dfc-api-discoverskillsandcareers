@@ -1,11 +1,9 @@
 ﻿using DFC.Api.DiscoverSkillsAndCareers.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Linq.Expressions;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace DFC.Api.DiscoverSkillsAndCareers.Repositories
@@ -29,25 +27,24 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Repositories
             await client.CreateDocumentAsync(DocumentCollectionUri, userSession).ConfigureAwait(false);
         }
 
-        public async Task<UserSession> GetAsync(Expression<Func<UserSession, bool>> where)
+        public async Task<UserSession> GetByIdAsync(string sessionId, string partitionKey)
         {
-            var query = client.CreateDocumentQuery<UserSession>(DocumentCollectionUri, new FeedOptions { MaxItemCount = 1, EnableCrossPartitionQuery = true })
-                .Where(where)
-                .AsDocumentQuery();
-
-            if (query == null)
+            try
             {
-                return default;
+                var uri = UriFactory.CreateDocumentUri(cosmosDbConnection.DatabaseId, cosmosDbConnection.UserSessionCollectionId, sessionId);
+                var requestOptions = new RequestOptions { PartitionKey = new PartitionKey(partitionKey) };
+                var document = await client.ReadDocumentAsync<UserSession>(uri, requestOptions).ConfigureAwait(false);
+                return document;
             }
-
-            var models = await query.ExecuteNextAsync<UserSession>().ConfigureAwait(false);
-
-            if (models != null && models.Count > 0)
+            catch (DocumentClientException ex)
             {
-                return models.FirstOrDefault();
-            }
+                if (ex.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
 
-            return default;
+                throw;
+            }
         }
     }
 }

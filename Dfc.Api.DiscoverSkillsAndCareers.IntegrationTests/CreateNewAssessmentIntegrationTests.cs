@@ -1,7 +1,7 @@
-﻿using Dfc.Session;
-using Dfc.Session.Models;
-using DFC.Api.DiscoverSkillsAndCareers.Models;
+﻿using DFC.Api.DiscoverSkillsAndCareers.Models;
 using DFC.Api.DiscoverSkillsAndCareers.Repositories;
+using Dfc.Session;
+using Dfc.Session.Models;
 using FluentAssertions;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Configuration;
@@ -69,6 +69,7 @@ namespace Dfc.Api.DiscoverSkillsAndCareers.IntegrationTests
         {
             // Arrange
             var dfcSession = sessionClient.NewSession();
+            var partitionKey = sessionClient.GeneratePartitionKey(dfcSession.SessionId);
             var client = new RestClient(apiBaseUrl);
             var req = new RestRequest("assessment/skills", Method.POST)
             {
@@ -81,7 +82,7 @@ namespace Dfc.Api.DiscoverSkillsAndCareers.IntegrationTests
             // Assert
             Assert.True(response.IsSuccessful && response.StatusCode == HttpStatusCode.Created);
 
-            var createdUserSession = await userSessionRepository.GetAsync(s => s.UserSessionId == dfcSession.SessionId).ConfigureAwait(false);
+            var createdUserSession = await userSessionRepository.GetByIdAsync(dfcSession.SessionId, partitionKey).ConfigureAwait(false);
             Assert.NotNull(createdUserSession);
             Assert.True(createdUserSession.PartitionKey == dfcSession.PartitionKey &&
                 createdUserSession.Salt == dfcSession.Salt &&

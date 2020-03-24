@@ -1,6 +1,4 @@
 ﻿using DFC.Api.DiscoverSkillsAndCareers.Models;
-using System;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace DFC.Api.DiscoverSkillsAndCareers.Repositories
@@ -9,6 +7,6 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Repositories
     {
         Task CreateUserSession(UserSession userSession);
 
-        Task<UserSession> GetAsync(Expression<Func<UserSession, bool>> where);
+        Task<UserSession> GetByIdAsync(string sessionId, string partitionKey);
     }
 }

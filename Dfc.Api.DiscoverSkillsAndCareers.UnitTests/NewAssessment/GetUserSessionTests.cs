@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
-using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
@@ -24,6 +23,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
         private readonly HttpRequest httpRequest;
         private readonly NewAssessmentFunctions functionApp;
         private readonly IUserSessionRepository userSessionRepository;
+        private readonly ISessionClient sessionClient;
 
         public GetUserSessionTests()
         {
@@ -31,7 +31,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
             var httpContextAccessor = A.Fake<IHttpContextAccessor>();
             var questionSetRepository = A.Fake<IQuestionSetRepository>();
             userSessionRepository = A.Fake<IUserSessionRepository>();
-            var sessionClient = A.Fake<ISessionClient>();
+            sessionClient = A.Fake<ISessionClient>();
             var correlationProvider = new RequestHeaderCorrelationIdProvider(httpContextAccessor);
             using var telemetryConfig = new TelemetryConfiguration();
             var telemetryClient = new TelemetryClient(telemetryConfig);
@@ -45,7 +45,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
         public async Task ReturnsNoContentResultWhenUserSessionDoesNotExist()
         {
             // Arrange
-            A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns((UserSession)null);
+            A.CallTo(() => userSessionRepository.GetByIdAsync(A<string>.Ignored, A<string>.Ignored)).Returns((UserSession)null);
 
             // Act
             var result = await functionApp.GetUserSession(httpRequest, "DummySessionId").ConfigureAwait(false);
@@ -80,7 +80,8 @@ namespace DFC.Api.DiscoverSkillsAndCareers.UnitTests.NewAssessment
                 PartitionKey = partitionKey,
             };
 
-            A.CallTo(() => userSessionRepository.GetAsync(A<Expression<Func<UserSession, bool>>>.Ignored)).Returns(userSession);
+            A.CallTo(() => userSessionRepository.GetByIdAsync(A<string>.Ignored, A<string>.Ignored)).Returns(userSession);
+            A.CallTo(() => sessionClient.GeneratePartitionKey(A<string>.Ignored)).Returns(partitionKey);
 
             // Act
             var result = await functionApp.GetUserSession(httpRequest, "DummySessionId").ConfigureAwait(false);

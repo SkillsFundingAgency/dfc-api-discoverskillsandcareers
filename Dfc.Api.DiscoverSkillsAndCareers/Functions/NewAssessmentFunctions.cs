@@ -50,14 +50,15 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
         [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is invalid.", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NotFound, Description = "Version header has invalid value, must be set to 'v1'.", ShowSchema = false)]
         [Response(HttpStatusCode = 429, Description = "Too many requests being sent, by default the API supports 150 per minute.", ShowSchema = false)]
-        public async Task<IActionResult> GetUserSession([HttpTrigger(AuthorizationLevel.Function, "get", Route = "assessment/session/{sessionId}")] HttpRequest request, string sessionId)
+        public async Task<IActionResult> GetUserSession([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "assessment/session/{sessionId}")] HttpRequest request, string sessionId)
         {
             request.LogRequestHeaders(logService);
 
             var correlationId = Guid.Parse(correlationIdProvider.CorrelationId);
             logService.LogMessage($"CorrelationId: {correlationId} - Creating a new assessment", SeverityLevel.Information);
 
-            var existingUserSession = await userSessionRepository.GetAsync(f => f.UserSessionId == sessionId).ConfigureAwait(false);
+            var partitionKey = sessionClient.GeneratePartitionKey(sessionId);
+            var existingUserSession = await userSessionRepository.GetByIdAsync(sessionId, partitionKey).ConfigureAwait(false);
             if (existingUserSession is null)
             {
                 logService.LogMessage($"Unable to find User Session with id {sessionId}.", SeverityLevel.Information);
@@ -83,7 +84,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
         [Response(HttpStatusCode = (int)HttpStatusCode.NotFound, Description = "Version header has invalid value, must be set to 'v1'.", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "Unable to create session. QuestionSet does not exist", ShowSchema = false)]
         [Response(HttpStatusCode = 429, Description = "Too many requests being sent, by default the API supports 150 per minute.", ShowSchema = false)]
-        public async Task<IActionResult> CreateNewShortAssessment([HttpTrigger(AuthorizationLevel.Function, "post", Route = "assessment/short")] HttpRequest request)
+        public async Task<IActionResult> CreateNewShortAssessment([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "assessment/short")] HttpRequest request)
         {
             request.LogRequestHeaders(logService);
 
@@ -113,7 +114,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
         [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is invalid.", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NotFound, Description = "Version header has invalid value, must be set to 'v1'.", ShowSchema = false)]
         [Response(HttpStatusCode = 429, Description = "Too many requests being sent, by default the API supports 150 per minute.", ShowSchema = false)]
-        public async Task<IActionResult> CreateNewSkillsAssessment([HttpTrigger(AuthorizationLevel.Function, "post", Route = "assessment/skills")] HttpRequest request)
+        public async Task<IActionResult> CreateNewSkillsAssessment([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "assessment/skills")] HttpRequest request)
         {
             request.LogRequestHeaders(logService);
 
@@ -144,19 +145,20 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
                 return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.NoContent, correlationId);
             }
 
-            var existingUserSession = await userSessionRepository.GetAsync(f => f.UserSessionId == dfcUserSession.SessionId).ConfigureAwait(false);
+            var partitionKey = sessionClient.GeneratePartitionKey(dfcUserSession.SessionId);
+            var existingUserSession = await userSessionRepository.GetByIdAsync(dfcUserSession.SessionId, partitionKey).ConfigureAwait(false);
             if (existingUserSession != null)
             {
                 logService.LogMessage($"Unable to create User Session with id {dfcUserSession.SessionId}. This record already exists", SeverityLevel.Information);
                 return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.AlreadyReported, correlationId);
             }
 
-            await CreateUserSession(currentQuestionSetInfo, dfcUserSession).ConfigureAwait(false);
+            await CreateUserSession(currentQuestionSetInfo, dfcUserSession, partitionKey).ConfigureAwait(false);
 
             return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.Created, correlationId);
         }
 
-        private async Task CreateUserSession(QuestionSet currentQuestionSetInfo, DfcUserSession dfcUserSession)
+        private async Task CreateUserSession(QuestionSet currentQuestionSetInfo, DfcUserSession dfcUserSession, string partitionKey = null)
         {
             var userSession = new UserSession
             {
@@ -164,7 +166,7 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
                 Salt = dfcUserSession.Salt,
                 StartedDt = dfcUserSession.CreatedDate,
                 LanguageCode = "en",
-                PartitionKey = dfcUserSession.PartitionKey,
+                PartitionKey = !string.IsNullOrWhiteSpace(partitionKey) ? partitionKey : dfcUserSession.PartitionKey,
                 AssessmentState = new AssessmentState(currentQuestionSetInfo.QuestionSetVersion, currentQuestionSetInfo.MaxQuestions),
                 AssessmentType = currentQuestionSetInfo.AssessmentType.ToLowerInvariant(),
             };
