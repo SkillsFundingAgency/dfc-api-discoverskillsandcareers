@@ -1,0 +1,338 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appSharedResourceGroup": {
+            "type": "string"
+        },
+        "appSharedStorageAccountName": {
+            "type": "string"
+        },
+        "aseHostingEnvironmentName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "aseResourceGroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "aspInstances": {
+            "type": "int",
+            "defaultValue": 2
+        },
+        "aspSize": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "aspTier": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "environment": {
+            "type": "string"
+        },
+        "sharedAppServicePlanName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "sharedAppServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "FunctionAppName": {
+            "type": "string"
+        },
+        "ApimResourceGroup": {
+            "type": "string"
+        },
+        "ApimServiceName": {
+            "type": "string"
+        },
+        "ApiName": {
+            "type": "string"
+        },
+        "CosmosDbName": {
+            "type": "string"
+        },
+        "CosmosDbResourceGroup": {
+            "type": "string"
+        },
+        "enableAlerts": {
+            "type": "bool",
+            "metadata": {
+                "description": "Enable or disable alerting"
+            }
+        },
+        "exceptionsThreshold": {
+            "type": "string",
+            "defaultValue": "0",
+            "metadata": {
+                "description": "The threshold for alerting on exceptions"
+            }
+        }
+    },
+    "variables": {
+        "appServicePlanName": "[if(greater(length(parameters('sharedAppServicePlanName')), 0), parameters('sharedAppServicePlanName'), concat(variables('resourcePrefix'), '-asp'))]",
+        "appServicePlanResourceGroup": "[if(greater(length(parameters('SharedAppServicePlanResourceGroup')), 0), parameters('SharedAppServicePlanResourceGroup'), resourceGroup().name)]",
+        "buildingBlocksDfcBaseUrl": "https://raw.githubusercontent.com/SkillsFundingAgency/dfc-devops/master/ArmTemplates/",
+        "resourcePrefix": "[tolower(concat('dfc-', parameters('Environment'), '-api-jobprofiles'))]",
+        "functionAppInsightsName": "[tolower(concat('dfc-', parameters('Environment'), '-api-dysac-ai'))]",
+        "VersionSetName": "[concat(toLower(parameters('ApiName')), '-versionset')]",
+        "AppSettings__SessionSalt": "ncs",
+        "ActionGroupName": "[concat('dfc-', tolower(parameters('Environment')), '-app-sharedresources-actgrp')]"
+    },
+    "resources": [
+        {
+            "name": "[variables('VersionSetName')]",
+            "type": "Microsoft.Resources/deployments",
+            "resourceGroup": "[parameters('ApimResourceGroup')]",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('BuildingBlocksDfcBaseUrl'), 'APIM/apim-versionset.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "apimServiceName":  {
+                        "value": "[parameters('ApimServiceName')]"
+                    },
+                    "apiName": {
+                        "value": "[parameters('ApiName')]"
+                    },
+                    "versioningMethod": {
+                        "value": "Header"
+                    },
+                    "versionProperty": {
+                        "value": "version"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "[variables('appServicePlanName')]",
+            "type": "Microsoft.Resources/deployments",
+            "condition": "[not(equals(parameters('sharedAppServicePlanName'), variables('appServicePlanName')))]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('buildingBlocksDfcBaseUrl'), 'app-service-plan.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appServicePlanName": {
+                        "value": "[variables('appServicePlanName')]"
+                    },
+                    "aseHostingEnvironmentName": {
+                        "value": "[parameters('aseHostingEnvironmentName')]"
+                    },
+                    "aseResourceGroup": {
+                        "value": "[parameters('aseResourceGroup')]"
+                    },
+                    "aspSize": {
+                        "value": "[parameters('aspSize')]"
+                    },
+                    "aspInstances": {
+                        "value": "[parameters('aspInstances')]"
+                    },
+                    "nonASETier": {
+                        "value": "[parameters('aspTier')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "[variables('functionAppInsightsName')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('buildingBlocksDfcBaseUrl'), 'application-insights.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appInsightsName": {
+                        "value": "[variables('functionAppInsightsName')]"
+                    },
+                    "attachedService": {
+                        "value": ""
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "[parameters('FunctionAppName')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('buildingBlocksDfcBaseUrl'), 'app-service.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "appServiceName": {
+                        "value": "[parameters('FunctionAppName')]"
+                    },
+                    "appServicePlanName": {
+                        "value": "[variables('appServicePlanName')]"
+                    },
+                    "appServicePlanResourceGroup": {
+                        "value": "[variables('appServicePlanResourceGroup')]"
+                    },
+                    "appServiceType": {
+                        "value": "functionapp"
+                    },
+                    "deployStagingSlot": {
+                        "value": true
+                    },
+                    "appServiceAppSettings": {
+                        "value": [
+                            {
+                                "name": "FUNCTIONS_EXTENSION_VERSION",
+                                "value": "~3"
+                            },
+                            {
+                                "name": "FUNCTIONS_WORKER_RUNTIME",
+                                "value": "dotnet"
+                            },
+                            {
+                                "name": "MSDEPLOY_RENAME_LOCKED_FILES",
+                                "value": "1"
+                            },
+                            {
+                                "name": "WEBSITE_RUN_FROM_PACKAGE",
+                                "value": "1"
+                            },
+                            {
+                                "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                                "value": "[reference(variables('functionAppInsightsName')).outputs.InstrumentationKey.value]"
+                            },
+                            {
+                                "name": "AzureWebJobsStorage",
+                                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('appSharedStorageAccountName'),';AccountKey=',listKeys(resourceId(parameters('appSharedResourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('appSharedStorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
+                            },
+                            {
+                                "name": "CosmosDbConnection__AccessKey",
+                                "value": "[listKeys(resourceId(parameters('CosmosDbResourceGroup'), 'Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbName')), '2015-04-08').primaryMasterKey]"
+                            },
+                            {
+                                "name": "CosmosDbConnection__EndpointUrl",
+                                "value": "[concat('https://', parameters('CosmosDbName'), '.documents.azure.com:443/')]"
+                            },
+                            {
+                                "name": "CosmosDbConnection__DatabaseId",
+                                "value": "DiscoverMySkillsAndCareers"
+                            },
+                            {
+                                "name": "CosmosDbConnection__QuestionSetsCollectionId",
+                                "value": "QuestionSets"
+                            },
+                            {
+                                "name": "CosmosDbConnection__UserSessionCollectionId",
+                                "value": "UserSessions"
+                            },
+                            {
+                                "name": "SessionConfig__ApplicationName",
+                                "value": "session"
+                            },
+                            {
+                                "name": "SessionConfig__Salt",
+                                "value": "[variables('AppSettings__SessionSalt')]"
+                            }
+                        ]
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('appServicePlanName')]"
+            ]
+        },
+        {
+          "apiVersion": "2019-05-01",
+          "name": "[concat(variables('functionAppInsightsName'), '-metric-exceptions')]",
+          "type": "Microsoft.Resources/deployments",
+          "dependsOn": [
+              "[variables('functionAppInsightsName')]"
+          ],
+          "properties": {
+              "mode": "Incremental",
+              "templateLink": {
+                  "uri": "[concat(variables('BuildingBlocksDfcBaseUrl'), 'Application-Insights/metric-alerts.json')]",
+                  "contentVersion": "1.0.0.0"
+              },
+              "parameters": {
+                  "enabled": {
+                      "value": "[parameters('enableAlerts')]"
+                  },
+                  "alertName": {
+                      "value": "[concat(variables('functionAppInsightsName'), '-metric-exceptions')]"
+                  },
+                  "alertSeverity": {
+                      "value": 3
+                  },
+                  "metricName": {
+                      "value": "exceptions/count"
+                  },
+                  "operator": {
+                      "value": "GreaterThan"
+                  },
+                  "threshold": {
+                      "value": "[parameters('exceptionsThreshold')]"
+                  },
+                  "aggregation": {
+                      "value": "Count"
+                  },
+                  "windowSize": {
+                      "value": "PT5M"
+                  },
+                  "evaluationFrequency": {
+                      "value": "PT1M"
+                  },
+                  "actionGroupName": {
+                      "value": "[variables('ActionGroupName')]"
+                  },
+                  "actionGroupResourceGroup": {
+                      "value": "[parameters('appSharedResourceGroup')]"
+                  },
+                  "resourceId": {
+                      "value": "[resourceId('Microsoft.Insights/Components', variables('functionAppInsightsName'))]"
+                  }
+              }
+          }
+      },
+      {
+          "apiVersion": "2019-05-01",
+          "name": "[concat(variables('functionAppInsightsName'), '-failure-anomaly-v2')]",
+          "type": "Microsoft.Resources/deployments",
+          "dependsOn": [
+              "[concat(variables('functionAppInsightsName'), '-metric-exceptions')]"
+          ],
+          "properties": {
+              "mode": "Incremental",
+              "templateLink": {
+                  "uri": "[concat(variables('BuildingBlocksDfcBaseUrl'), 'Application-Insights/failure-anomaly-rule.json')]",
+                  "contentVersion": "1.0.0.0"
+              },
+              "parameters": {
+                  "alertName": {
+                      "value": "[concat(variables('functionAppInsightsName'), '-failure-anomaly-v2')]"
+                  },
+                  "enabled": {
+                      "value": "[parameters('enableAlerts')]"
+                  },
+                  "resourceId": {
+                      "value": "[resourceId('Microsoft.Insights/Components', variables('functionAppInsightsName'))]"
+                  },
+                  "actionGroupId": {
+                      "value": "[resourceId(parameters('appSharedResourceGroup'), 'microsoft.insights/actionGroups', variables('ActionGroupName'))]"
+                  }
+              }
+          }
+      }
+
+    ],
+    "outputs": {}
+}
