@@ -23,7 +23,6 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
     public class NewAssessmentFunctions
     {
         private const string ShortAssessmentType = "short";
-        private const string SkillsAssessmentType = "skills";
         private readonly ILogService logService;
         private readonly IResponseWithCorrelation responseWithCorrelation;
         private readonly IQuestionSetRepository questionSetRepository;
@@ -138,10 +137,10 @@ namespace DFC.Api.DiscoverSkillsAndCareers.Functions
                 return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.BadRequest, correlationId);
             }
 
-            var currentQuestionSetInfo = await questionSetRepository.GetCurrentQuestionSet(SkillsAssessmentType).ConfigureAwait(false);
+            var currentQuestionSetInfo = await questionSetRepository.GetCurrentQuestionSet(ShortAssessmentType).ConfigureAwait(false);
             if (currentQuestionSetInfo == null)
             {
-                logService.LogMessage($"CorrelationId: {correlationId} - Unable to load latest question set {SkillsAssessmentType}", SeverityLevel.Warning);
+                logService.LogMessage($"CorrelationId: {correlationId} - Unable to load latest question set {ShortAssessmentType}", SeverityLevel.Warning);
                 return responseWithCorrelation.ResponseWithCorrelationId(HttpStatusCode.NoContent, correlationId);
             }
 
