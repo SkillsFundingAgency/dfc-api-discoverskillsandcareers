@@ -72,7 +72,7 @@
         "appServicePlanName": "[concat(variables('resourcePrefix'), '-asp')]",
         "appServicePlanResourceGroup": "[concat(variables('resourcePrefix'),'-rg')]",
         "buildingBlocksDfcBaseUrl": "https://raw.githubusercontent.com/SkillsFundingAgency/dfc-devops/master/ArmTemplates/",
-        "resourcePrefix": "[tolower(concat('dfc-', parameters('Environment'), '-api-jobprofiles'))]",
+        "resourcePrefix": "[tolower(concat('dfc-', parameters('Environment'), '-api-dysac'))]",
         "functionAppInsightsName": "[tolower(concat('dfc-', parameters('Environment'), '-api-dysac-ai'))]",
         "VersionSetName": "[concat(toLower(parameters('ApiName')), '-versionset')]",
         "AppSettings__SessionSalt": "ncs",
