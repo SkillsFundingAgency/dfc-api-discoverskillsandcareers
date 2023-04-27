@@ -2,6 +2,9 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "appInsightsName": {
+            "type": "string"
+        },
         "appSharedResourceGroup": {
             "type": "string"
         },
@@ -73,7 +76,7 @@
         "appServicePlanResourceGroup": "[concat(variables('resourcePrefix'),'-rg')]",
         "buildingBlocksDfcBaseUrl": "https://raw.githubusercontent.com/SkillsFundingAgency/dfc-devops/master/ArmTemplates/",
         "resourcePrefix": "[tolower(concat('dfc-', parameters('Environment'), '-api-dysac'))]",
-        "functionAppInsightsName": "[tolower(concat('dfc-', parameters('Environment'), '-api-dysac-ai'))]",
+        "functionAppInsightsName": "[parameters('appInsightsName')]",
         "VersionSetName": "[concat(toLower(parameters('ApiName')), '-versionset')]",
         "AppSettings__SessionSalt": "ncs",
         "ActionGroupName": "[concat('dfc-', tolower(parameters('Environment')), '-app-sharedresources-actgrp')]"

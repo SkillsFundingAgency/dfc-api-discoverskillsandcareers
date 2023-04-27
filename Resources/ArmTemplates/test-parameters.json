@@ -46,6 +46,9 @@
         },
         "enableAlerts": {
             "value": false
+        },
+        "appInsightsName": {
+            "value": "dfc-foo-shared-ai" 
         }
     }
 }

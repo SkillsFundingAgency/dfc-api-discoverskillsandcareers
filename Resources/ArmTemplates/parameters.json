@@ -58,6 +58,9 @@
         },
         "exceptionsThreshold": {
             "value": "__ExceptionsThreshold__"
+        },
+        "appInsightsName": {
+            "value": "__appInsightsName__" 
         }
     }
 }
