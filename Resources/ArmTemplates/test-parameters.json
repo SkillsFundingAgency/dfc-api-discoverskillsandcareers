@@ -46,6 +46,12 @@
         },
         "enableAlerts": {
             "value": false
+        },
+        "workspaceName": {
+            "value": "aTestLogAnalyticsAccount"
+        },
+        "workspaceResourceGroup": {
+            "value": "aResourceGroup"
         }
     }
 }
